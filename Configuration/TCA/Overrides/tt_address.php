@@ -62,3 +62,60 @@ $GLOBALS['TCA']['tt_address']['columns']['image']['config']['overrideChildTca'][
 
 
 $GLOBALS['TCA']['tt_address']['ctrl']['sortby'] = 'sorting';
+
+$temporaryColumns = [
+    'sys_language_uid' => [
+        'exclude' => 1,
+        'label'   => 'LLL:EXT:lang/locallang_general.xlf:LGL.language',
+        'config'  => [
+            'type'       => 'select',
+            'renderType' => 'selectSingle',
+            'special'    => 'languages',
+        ],
+    ],
+    'l10n_parent'      => [
+        'displayCond' => 'FIELD:sys_language_uid:>:0',
+        'exclude'     => 1,
+        'label'       => 'LLL:EXT:lang/locallang_general.xlf:LGL.l18n_parent',
+        'config'      => [
+            'type'                => 'select',
+            'renderType'          => 'selectSingle',
+            'items'               => [
+                ['', 0],
+            ],
+            'foreign_table'       => 'tt_address',
+            'foreign_table_where' => 'AND tt_address.pid=###CURRENT_PID### AND tt_address.sys_language_uid IN (-1,0)',
+        ],
+    ],
+    'l10n_diffsource'  => [
+        'config' => [
+            'type' => 'passthrough',
+        ],
+    ],
+];
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
+    'tt_address',
+    $temporaryColumns
+);
+
+\TYPO3\CMS\Core\Utility\ArrayUtility::mergeRecursiveWithOverrule(
+    $GLOBALS['TCA']['tt_address'],
+    [
+        'ctrl'  => [
+            'languageField'            => 'sys_language_uid',
+            'transOrigPointerField'    => 'l10n_parent',
+            'transOrigDiffSourceField' => 'l10n_diffsource',
+        ],
+        'types' => [
+            0 => [
+                'showitem' => '--palette--;General;general,--palette--;LLL:EXT:tt_address/locallang_tca.xml:tt_address_palette.name;name,image,description,--div--;LLL:EXT:tt_address/locallang_tca.xml:tt_address_tab.contact,--palette--;LLL:EXT:tt_address/locallang_tca.xml:tt_address_palette.address;address,--palette--;LLL:EXT:tt_address/locallang_tca.xml:tt_address_palette.building;building,--palette--;LLL:EXT:tt_address/locallang_tca.xml:tt_address_palette.organization;organization,--palette--;LLL:EXT:tt_address/locallang_tca.xml:tt_address_palette.contact;contact,--palette--;LLL:EXT:tt_address/locallang_tca.xml:tt_address_palette.social;social,--div--;LLL:EXT:lang/locallang_tca.xlf:sys_category.tabs.category,categories',
+            ]
+        ],
+        'palettes' => [
+            'general' => [
+                'cannotCollapse' => 1,
+                'showitem' => 'hidden,sys_language_uid,l10n_parent',
+            ]
+        ]
+    ]
+);
